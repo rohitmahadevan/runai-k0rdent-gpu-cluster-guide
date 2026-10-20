@@ -1,0 +1,6 @@
+# Files that contain real AWS keys: never commit. Use the *.example.yaml versions.
+runai-catalog/3-external-dns-aws-secret.yaml
+runai-catalog/4-cert-manager-aws-secret.yaml
+*key*.json
+*.bak*
+.key.json

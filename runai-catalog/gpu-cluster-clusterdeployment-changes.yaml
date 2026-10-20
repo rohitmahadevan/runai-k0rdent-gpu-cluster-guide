@@ -1,0 +1,37 @@
+# gpu-cluster ClusterDeployment (management cluster, kcm-system): changes made 2026-10-20 to support
+# Run:ai 3.0 memory-enforced GPU fractions. These are the resulting field values, not a full manifest.
+# Applied with kubectl patch (see README section 10). Backup before: ~/k0rdent-backups/gpu-stack-upgrade-20261020T130402Z/
+apiVersion: k0rdent.mirantis.com/v1beta1
+kind: ClusterDeployment
+metadata:
+  name: gpu-cluster
+  namespace: kcm-system
+spec:
+  template: aws-standalone-cp-1-0-26           # unchanged
+  config:
+    k0s:
+      # was v1.35.1+k0s.1 (template default). k0s 1.36 is the first line bundling containerd 2.x (2.3.3 here).
+      # Must be a version present on the k0rdent Enterprise mirror get.mirantis.com/k0rdent-enterprise/k0s/
+      # (v1.36.4+k0s.1 was 404 there -> worker bootstrap failed).
+      version: v1.36.3+k0s.2
+  serviceSpec:
+    services:
+      - name: gpu-operator
+        namespace: gpu-operator
+        template: gpu-operator-26-7-2           # was gpu-operator-25-3-0 (kgst: chart=gpu-operator:26.7.2)
+        values: |
+          gpu-operator:
+            driver:
+              version: "615.71.09"              # r615 required by gpu-fractioning; 26.7.2 default is 595.91.07
+            toolkit:                            # 26.7.2 bundles toolkit v1.20.1 and device plugin v0.20.1
+              enabled: true
+              env:
+                - name: CONTAINERD_CONFIG       # k0s 1.36: /etc/k0s/containerd.toml imports containerd.d/*.toml
+                  value: /etc/k0s/containerd.d/nvidia.toml
+                - name: CONTAINERD_SOCKET
+                  value: /run/k0s/containerd.sock
+                - name: CONTAINERD_RUNTIME_CLASS
+                  value: nvidia
+      - name: mlflow                            # unchanged
+        namespace: mlflow
+        template: mlflow-1-8-1

@@ -1,0 +1,25 @@
+# k0rdent catalog runai-cp, "Deploy service" step: Run:ai config.
+# Kept as close to the catalog as possible, for NVIDIA open-source control-plane 3.0.20.
+# Catalog lines that do not apply to 3.0 are kept as comments at the same position.
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: runai-control-plane
+  namespace: kcm-system
+data:
+  runai-values: |
+    # license: <BASE64 encoded Run:ai license>   # not needed: open-source Run:ai 3.0
+    # clusterIssuer: -> separate ClusterIssuer manifest (same fields), delivered with cert-manager
+    # control-plane:                              # not needed: NVIDIA chart used directly, so global sits at the top level
+    global:
+      domain: runai.lab.example.com
+      ingress:
+        extraAnnotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+    tenantsManager:
+      config:
+        adminUsername: "test@run.ai"   # It is highly recommended to change this
+        adminPassword: "<ADMIN_PASSWORD>"      # set a strong password (the catalog example uses a published default)
+    # knative:
+    #   domain:
+    #     runai.lab.example.com: ""        # configured with Knative Serving later (inference only)

@@ -1,0 +1,14 @@
+apiVersion: k0rdent.mirantis.com/v1beta1
+kind: MultiClusterService
+metadata:
+  name: runai-prereqs
+spec:
+  clusterSelector:
+    matchLabels:
+      workload-type: ml-training
+  serviceSpec:
+    services:
+      - template: ingress-nginx-4-12-1
+        name: ingress-nginx
+        namespace: ingress-nginx
+    priority: 100

@@ -1,0 +1,43 @@
+# k0rdent catalog runai-cp: the "clusterIssuer:" block of the Run:ai config, as its own manifest.
+# (The catalog 2.23 wrapper chart creates it from runai-values; NVIDIA 3.0 chart does not.)
+# Delivered to gpu-cluster the same way as the catalog Cert-Manager AWS secret (ServiceTemplate + localSourceRef).
+# Uses Secret prod-route53-credentials-secret (cert-manager namespace) from 4-cert-manager-aws-secret.yaml.
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: letsencrypt-prod-clusterissuer
+  namespace: kcm-system
+data:
+  clusterissuer.yaml: |
+    apiVersion: cert-manager.io/v1
+    kind: ClusterIssuer
+    metadata:
+      name: letsencrypt-prod
+    spec:
+      acme:
+        server: https://acme-v02.api.letsencrypt.org/directory
+        privateKeySecretRef:
+          name: letsencrypt-prod
+        solvers:
+          - dns01:
+              route53:
+                region: us-east-1
+                accessKeyIDSecretRef:
+                  name: prod-route53-credentials-secret
+                  key: AccessKeyID
+                secretAccessKeySecretRef:
+                  name: prod-route53-credentials-secret
+                  key: SecretAccessKey
+---
+apiVersion: k0rdent.mirantis.com/v1beta1
+kind: ServiceTemplate
+metadata:
+  name: letsencrypt-prod-clusterissuer
+  namespace: kcm-system
+spec:
+  resources:
+    localSourceRef:
+      kind: ConfigMap
+      name: letsencrypt-prod-clusterissuer
+    deploymentType: Remote
+    path: ""  # will be ignored

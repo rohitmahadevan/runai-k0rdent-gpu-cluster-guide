@@ -1,0 +1,20 @@
+# gpu-cluster: add-only RBAC so Calico v3.31.4 can list AdminNetworkPolicy / BaselineAdminNetworkPolicy again.
+# k0s 1.36's calico ClusterRole only grants policy.networking.k8s.io/clusternetworkpolicies, but calico 3.31.4
+# still lists (baseline)adminnetworkpolicies; a freshly started felix then never becomes ready. Applied 2026-10-20.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: calico-anp-compat
+rules:
+- apiGroups: ["policy.networking.k8s.io"]
+  resources: ["adminnetworkpolicies", "adminnetworkpolicies/status", "baselineadminnetworkpolicies", "baselineadminnetworkpolicies/status"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: calico-anp-compat
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: calico-anp-compat }
+subjects:
+- { kind: ServiceAccount, name: calico-node, namespace: kube-system }
+- { kind: ServiceAccount, name: calico-kube-controllers, namespace: kube-system }

@@ -1,0 +1,51 @@
+# k0rdent catalog runai-cp, step 4 "Deploy service": MultiClusterService
+# Same service order as the catalog. Differences:
+#  - gpu-operator: not listed (already deployed by gpu-cluster ClusterDeployment, 25.3.0 with k0s values)
+#  - nginx: not listed (deployed by MCS runai-prereqs, ingress-nginx-4-12-1)
+#  - cert-manager: not listed (option B: reuse cert-manager 1.17.2 from MCS ml-platform)
+#  - letsencrypt-prod: added (ClusterIssuer; the catalog 2.23 wrapper creates it from runai-values.clusterIssuer)
+#  - prometheus 90.0.0 / knative-operator 1.23.1: versions Run:ai 3.0 needs; prometheus values nested (wrapper chart)
+#  - runai-backend: NVIDIA open-source control-plane 3.0.20 instead of the 2.23 wrapper
+apiVersion: k0rdent.mirantis.com/v1beta1
+kind: MultiClusterService
+metadata:
+  name: runai-control-plane
+spec:
+  clusterSelector:
+    matchLabels:
+      group: runai-cp
+  serviceSpec:
+    services:
+      - name: external-dns
+        namespace: external-dns
+        template: external-dns-1-19-0
+        valuesFrom:
+          - kind: Secret
+            name: service-external-dns-values
+
+      - name: prod-route53-credentials-secret
+        namespace: cert-manager
+        template: cert-manager-aws-secret
+
+      - name: letsencrypt-prod
+        namespace: cert-manager
+        template: letsencrypt-prod-clusterissuer
+
+      - name: prometheus
+        namespace: monitoring
+        template: kube-prometheus-stack-90-0-0
+        values: |
+          kube-prometheus-stack:
+            grafana:
+              enabled: false
+
+      - name: knative-operator
+        namespace: knative-operator
+        template: knative-operator-1-23-1
+
+      - name: runai-backend
+        namespace: runai-backend
+        template: runai-control-plane-3-0-20
+        valuesFrom:
+          - kind: ConfigMap
+            name: runai-control-plane
