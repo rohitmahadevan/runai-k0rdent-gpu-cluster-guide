@@ -17,6 +17,22 @@ Done on 2026-10-16 (GPU stack upgrade 2026-10-20). Working files are in `~/runai
 | Fractional GPUs | **Working, with GPU-memory enforcement** (since 2026-10-20, §10). A `--gpu-portion-request 0.5` job sees 11514 MiB of the A10G |
 | Last change | 2026-10-20 16:52 UTC: GPU stack upgraded for fractions (§10). gpu-cluster now runs k0s **v1.36.3+k0s.2** / containerd 2.3.3, GPU Operator 26.7.2, driver 615.71.09; `runai-cluster` Helm revision 3 (`nvFractions.set=true`) |
 
+## Screenshots (Run:ai UI, 2026-10-20)
+
+Taken after the GPU stack upgrade (§10). The browser bar and the cluster URL are redacted.
+
+**Clusters:** `gpu-cluster` Connected, Kubernetes 1.36.3+k0s, Run:ai cluster 3.0.20
+
+![Run:ai Clusters page](images/runai-clusters.png)
+
+**Nodes:** both nodes Ready; the GPU node has 4/4 NVIDIA A10G
+
+![Run:ai Nodes page](images/runai-nodes.png)
+
+**Workloads:** `frac-half` (0.5 GPU, fractional), `gpu-test` (1 GPU) and `mnist-train` (distributed PyTorch, 2 pods) all completed
+
+![Run:ai Workloads page](images/runai-workloads.png)
+
 ## What runs where
 
 ```

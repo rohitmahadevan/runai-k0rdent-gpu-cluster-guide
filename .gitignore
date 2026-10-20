@@ -4,3 +4,6 @@ runai-catalog/4-cert-manager-aws-secret.yaml
 *key*.json
 *.bak*
 .key.json
+
+# Unredacted macOS screenshots (show the real domain and browser profile): never commit
+images/Screenshot*
